@@ -1,14 +1,44 @@
 const frequencyComponents = [
-  { low: 941, high: 1336 },
-  { low: 697, high: 1209 },
-  { low: 697, high: 1336 },
-  { low: 697, high: 1477 },
-  { low: 770, high: 1209 },
-  { low: 770, high: 1336 },
-  { low: 770, high: 1477 },
-  { low: 852, high: 1209 },
-  { low: 852, high: 1336 },
-  { low: 852, high: 1477 }];
+  {
+    low: 941,
+    high: 1336,
+  },
+  {
+    low: 697,
+    high: 1209,
+  },
+  {
+    low: 697,
+    high: 1336,
+  },
+  {
+    low: 697,
+    high: 1477,
+  },
+  {
+    low: 770,
+    high: 1209,
+  },
+  {
+    low: 770,
+    high: 1336,
+  },
+  {
+    low: 770,
+    high: 1477,
+  },
+  {
+    low: 852,
+    high: 1209,
+  },
+  {
+    low: 852,
+    high: 1336,
+  },
+  {
+    low: 852,
+    high: 1477,
+  }];
 
 const WIDTH = 1260;
 const HALF_SECOND = 0.5;
@@ -100,7 +130,10 @@ async function delayedPlay(tone, options, isGraphNeeded) {
 }
 
 // eslint-disable-next-line no-shadow
-const inputTone = async (tones = prompt('Введите тон'), sampleRate = 10000, volume = HALF_SECOND) => {
+const inputTone = async (
+  tones = prompt('Введите тон'),
+  sampleRate = 10000,
+  volume = HALF_SECOND) => {
   const options = {
     sampleRate,
     volume,
@@ -122,3 +155,12 @@ const inputTone = async (tones = prompt('Введите тон'), sampleRate = 1
   }
   inputTone();
 };
+
+const f = () => {
+  const h1 = document.createElement('h1');
+  h1.innerText = 'DTMF';
+  document.body.appendChild(h1);
+  h1.addEventListener('click', () => inputTone());
+};
+
+export default f();
