@@ -1,11 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
+from scipy.fftpack import fft, rfftfreq
 
 Fs = 44100
 
 fc = np.array([1, 10000])
 wc = 2 * fc / Fs
+
+t = np.linspace(0, 0.01, 3000, endpoint=False)
+n = np.size(t)
+fr = rfftfreq(n, 1. / Fs)
 
 Btypes = {
     'lowpass': 'lowpass',
@@ -62,7 +67,7 @@ def define_graphs(b, a, title, show, task):
         w, h = signal.freqs(b, a)
         draw_frequency_response(w, h, title, show=False)
     if task == 3:
-        print(task)
+        return;
 
 
 def butter(btype="low", N=4, show=True, task=1):
@@ -72,6 +77,7 @@ def butter(btype="low", N=4, show=True, task=1):
     title = f'{btype} Butterworth filter'
 
     define_graphs(b, a, title, show, task)
+    return b, a
 
 
 def cheby1(btype="low", N=4, show=True, task=1):
@@ -81,6 +87,7 @@ def cheby1(btype="low", N=4, show=True, task=1):
     title = f'{btype} Chebyshev Type I (rp=5)'
 
     define_graphs(b, a, title, show, task)
+    return b, a
 
 
 def cheby2(btype="low", N=4, show=True, task=1):
@@ -90,6 +97,7 @@ def cheby2(btype="low", N=4, show=True, task=1):
     title = f'{btype} Chebyshev Type II (rs=40)'
 
     define_graphs(b, a, title, show, task)
+    return b, a
 
 
 def ellip(btype="low", N=4, show=True, task=1):
@@ -99,6 +107,7 @@ def ellip(btype="low", N=4, show=True, task=1):
     title = f'{btype} Elliptic filter (rp=5, rs=40)'
 
     define_graphs(b, a, title, show, task)
+    return b, a
 
 
 def draw_group(f):
@@ -108,6 +117,32 @@ def draw_group(f):
     plt.show()
 
 
-list(map(lambda f: list(map(lambda i: f(i), list(Btypes))), [butter, cheby1, cheby2, ellip]))
+def draw_spectrum_graph(signal, signal_title='Signal'):
+    spectrum = abs(fft(signal)) / n
 
-list(map(draw_group, [butter, cheby1, cheby2, ellip]))
+    plt.title(f"Spectrum of {signal_title}")
+    plt.plot(2 * fr, spectrum)
+    plt.ylabel('Amplitude, V')
+    plt.xlabel('Frequency, Hz')
+    plt.grid(True)
+    plt.show()
+
+
+filters = [butter, cheby1, cheby2, ellip]
+
+list(map(lambda f: list(map(f, list(Btypes))), filters))
+
+list(map(draw_group, filters))
+
+sig = np.sin(2 * np.pi * t)
+pwm = signal.square(2 * np.pi * 300 * t, duty=(sig + 1) / 2)
+plt.plot(t, pwm)
+plt.ylim(-1.5, 1.5)
+plt.show()
+
+draw_spectrum_graph(pwm)
+b, a = butter(task=3)
+filtered_signal = signal.lfilter(b, a, pwm)
+plt.plot(t, filtered_signal)
+plt.show()
+draw_spectrum_graph(filtered_signal)
