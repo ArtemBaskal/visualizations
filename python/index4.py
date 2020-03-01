@@ -46,81 +46,64 @@ def draw_phase_response(w, h, title, show=True):
          'Phase [radians]', show)
 
 
-def butter(btype="low", N=4, Wn=100, show=True, task=1):
+def define_critical_frequency(btype):
+    Wn = 1
     if (btype == Btypes['lowpass'] or btype == Btypes['highpass']):
         Wn = 100
     if (btype == Btypes['bandpass'] or btype == Btypes['bandstop']):
         Wn = wc
+    return Wn
+
+
+def define_graphs(b, a, title, show, task):
+    if task == 1:
+        draw_graphs(b, a, title, show)
+    if task == 2:
+        w, h = signal.freqs(b, a)
+        draw_frequency_response(w, h, title, show=False)
+    if task == 3:
+        print(task)
+
+
+def butter(btype="low", N=4, show=True, task=1):
+    Wn = define_critical_frequency(btype)
 
     b, a = signal.butter(N, Wn, btype, analog=True)
-
     title = f'{btype} Butterworth filter'
-    if task == 1:
-        draw_graphs(b, a, title, show)
-    if task == 2:
-        w, h = signal.freqs(b, a)
-        draw_frequency_response(w, h, title, show=False)
-    if task == 3:
-        print(task)
+
+    define_graphs(b, a, title, show, task)
 
 
-def cheby1(btype="low", N=4, Wn=100, show=True, task=1):
-    if (btype == Btypes['lowpass'] or btype == Btypes['highpass']):
-        Wn = 100
-    if (btype == Btypes['bandpass'] or btype == Btypes['bandstop']):
-        Wn = wc
+def cheby1(btype="low", N=4, show=True, task=1):
+    Wn = define_critical_frequency(btype)
 
     b, a = signal.cheby1(N, 5, Wn, btype, analog=True)
-
     title = f'{btype} Chebyshev Type I (rp=5)'
-    if task == 1:
-        draw_graphs(b, a, title, show)
-    if task == 2:
-        w, h = signal.freqs(b, a)
-        draw_frequency_response(w, h, title, show=False)
-    if task == 3:
-        print(task)
+
+    define_graphs(b, a, title, show, task)
 
 
-def cheby2(btype="low", N=4, Wn=100, show=True, task=1):
-    if (btype == Btypes['lowpass'] or btype == Btypes['highpass']):
-        Wn = 100
-    if (btype == Btypes['bandpass'] or btype == Btypes['bandstop']):
-        Wn = wc
+def cheby2(btype="low", N=4, show=True, task=1):
+    Wn = define_critical_frequency(btype)
 
     b, a = signal.cheby2(N, 40, Wn, btype, analog=True)
-
     title = f'{btype} Chebyshev Type II (rs=40)'
-    if task == 1:
-        draw_graphs(b, a, title, show)
-    if task == 2:
-        w, h = signal.freqs(b, a)
-        draw_frequency_response(w, h, title, show=False)
-    if task == 3:
-        draw_graphs(b, a, title, show)
+
+    define_graphs(b, a, title, show, task)
 
 
-def ellip(btype="low", N=4, Wn=100, show=True, task=1):
-    if (btype == Btypes['lowpass'] or btype == Btypes['highpass']):
-        Wn = 100
-    if (btype == Btypes['bandpass'] or btype == Btypes['bandstop']):
-        Wn = wc
+def ellip(btype="low", N=4, show=True, task=1):
+    Wn = define_critical_frequency(btype)
 
     b, a = signal.ellip(N, 5, 40, Wn, btype, analog=True)
-
     title = f'{btype} Elliptic filter (rp=5, rs=40)'
-    if task == 1:
-        draw_graphs(b, a, title, show)
-    if task == 2:
-        w, h = signal.freqs(b, a)
-        draw_frequency_response(w, h, title, show=False)
-    if task == 3:
-        print(task)
+
+    define_graphs(b, a, title, show, task)
 
 
 def draw_group(f):
     order = range(1, 11)
-    list(map(lambda i: f(N=i, show=False, task=2), order))
+    list(map(lambda i: f(N=i, task=2), order))
     plt.legend(order)
     plt.show()
 
