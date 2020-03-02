@@ -163,4 +163,4 @@ const f = () => {
   h1.addEventListener('click', () => inputTone());
 };
 
-export default f();
+f();
