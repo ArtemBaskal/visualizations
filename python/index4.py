@@ -10,7 +10,7 @@ wc = 2 * fc / Fs
 
 t = np.linspace(0, 0.01, 3000, endpoint=False)
 n = np.size(t)
-fr = rfftfreq(n, 1. / Fs)
+fr = rfftfreq(n, 1. / 3000)
 
 Btypes = {
     'lowpass': 'lowpass',
@@ -38,7 +38,7 @@ def draw_graphs(b, a, title, show=True):
 
 
 def draw_frequency_response(w, h, title, show=True):
-    draw(w, 20 * np.log10(abs(h)),
+    draw(w, (abs(h)),
          f'{title} frequency response',
          'Frequency [radians / second]',
          'Amplitude [dB]', show)
@@ -128,21 +128,30 @@ def draw_spectrum_graph(signal, signal_title='Signal'):
     plt.show()
 
 
+def create_signal():
+    sig = np.sin(2 * np.pi * t)
+    pwm = signal.square(2 * np.pi * 300 * t, duty=(sig + 1) / 2)
+    plt.plot(t, pwm)
+    plt.ylim(-1.5, 1.5)
+    plt.show()
+    draw_spectrum_graph(pwm)
+    return pwm
+
+
+def filtrate(f):
+    b, a = f()
+    filtered_signal = signal.lfilter(b, a, pwm)
+    plt.plot(t, filtered_signal)
+    plt.show()
+    draw_spectrum_graph(filtered_signal)
+
+
 filters = [butter, cheby1, cheby2, ellip]
 
 list(map(lambda f: list(map(f, list(Btypes))), filters))
 
 list(map(draw_group, filters))
 
-sig = np.sin(2 * np.pi * t)
-pwm = signal.square(2 * np.pi * 300 * t, duty=(sig + 1) / 2)
-plt.plot(t, pwm)
-plt.ylim(-1.5, 1.5)
-plt.show()
+pwm = create_signal()
 
-draw_spectrum_graph(pwm)
-b, a = butter(task=3)
-filtered_signal = signal.lfilter(b, a, pwm)
-plt.plot(t, filtered_signal)
-plt.show()
-draw_spectrum_graph(filtered_signal)
+list(map(filtrate, filters))

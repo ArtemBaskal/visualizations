@@ -79,7 +79,7 @@ def task4(square_wave, triangular_wave):
 square_wave = np.repeat([0., 1., 0.], 200)
 triangular_wave = convolve(square_wave, square_wave)
 
-task1(square_wave, triangular_wave)
+# task1(square_wave, triangular_wave)
 task2(square_wave)
 task3(square_wave, triangular_wave)
-task4(square_wave, triangular_wave)
+# task4(square_wave, triangular_wave)
