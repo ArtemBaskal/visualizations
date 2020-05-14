@@ -2,7 +2,8 @@ import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
-import librosa as lr
+import librosa
+import librosa.display
 
 warnings.filterwarnings("ignore")
 np.seterr(divide='ignore')
@@ -19,14 +20,16 @@ Fs = 44100
 font = {
     'family': 'arial',
     'weight': 'light',
-    'size': 7
+    'size': 4
 }
 
 plt.rc('font', **font)
 plt.rcParams['figure.dpi'] = 300
 
+duration = 20
+
 data_dir = '/Volumes/dev/hse/media/audio/around.mp3'
-audio, sfreq = lr.load(data_dir, duration=60)
+audio, sfreq = librosa.load(data_dir, duration=duration)
 time = np.arange(0, len(audio)) / sfreq
 
 
@@ -38,23 +41,30 @@ def set_graph_params(subplot, title, xlabel, ylabel):
 
 
 def draw_signal_and_spectrum(time, audio, sos=None, title=''):
-    order = 211
+    order = 311
     if sos is not None:
         order = order + 100
 
     set_graph_params(order, f'Сигнал {title}', 'Время, c', 'Амплитуда сигнала, В')
     plt.plot(time, audio)
 
-    order = order + 1
+    order += 1
     plt.subplot(order)
     plt.magnitude_spectrum(audio, Fs=sfreq)
     set_graph_params(order, 'Спект сигнала', 'Частота, Гц', 'Амплитуда сигнала, В')
+
+    order += 1
+    plt.subplot(order)
+    S_full, phase = librosa.magphase(librosa.stft(audio))
+    idx = slice(*librosa.time_to_frames([0, duration], sr=sfreq))
+    librosa.display.specshow(librosa.amplitude_to_db(S_full[:, idx], ref=np.max), y_axis='log', x_axis='time', sr=sfreq)
+    set_graph_params(order, 'Спектрограмма сигнала', 'Время, с', 'Частота сигнала, Гц')
 
     if sos is None:
         plt.show()
         return
 
-    order = order + 1
+    order += 1
     set_graph_params(order, 'AЧХ', 'Угловая частота, рад/с', 'Коэффициент передачи, дБ')
     w, h = signal.sosfreqz(sos, worN=1500)
     plt.plot(w / np.pi, 20 * np.log10(abs(h)))
@@ -82,7 +92,7 @@ def butter(btype='lowpass', sig=audio, lowcut=1, highcut=3000, order=10, fs=Fs):
     draw_signal_and_spectrum(time, filtered, sos, title)
 
     if btype == Btypes['bandstop']:
-        lr.output.write_wav(f'/Volumes/dev/hse/media/audio/test.wav', filtered, sfreq)
+        librosa.output.write_wav(f'/Volumes/dev/hse/media/audio/test.wav', filtered, sfreq)
 
 
 def cheby1(btype='lowpass', sig=audio, lowcut=1, highcut=3000, order=4, fs=Fs):
