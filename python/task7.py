@@ -1,6 +1,8 @@
 import warnings
 import numpy as np
+import IPython.display as ipd
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import librosa
 from scipy import signal, interpolate
 
@@ -28,7 +30,9 @@ DTMF_TABLE = {
     9: {'high': 1477, 'low': 852},
 }
 
-Fs = 10000
+titles = ['Децимация, КИХ фильтр', 'Прореживание, КИХ фильтр', 'Децимация, БИХ фильтр', 'Прореживание, БИХ фильтр']
+
+Fs = 100000
 t = 0.4
 time = np.linspace(0, t, int(t * Fs), endpoint=False)
 
@@ -156,9 +160,86 @@ def get_processed_signals(sig, downsampling_factor=5):
     decimated_sig_fir, resampled_sig_fir = process_signals(sig, downsampling_factor, N_fir, ftype='fir')
     decimated_signal_iir, resampled_signal_iir = process_signals(sig, downsampling_factor, N_iir, ftype='iir')
 
-    decimated_time = np.linspace(0, t, int(t * Fs / downsampling_factor), endpoint=False)
-
+    decimated_time = signal.decimate(time, downsampling_factor)
     return decimated_sig_fir, resampled_sig_fir, decimated_signal_iir, resampled_signal_iir, decimated_time
+
+
+def create_animation(sig, idx=0):
+    fig, ax = plt.subplots()
+
+    ims = []
+    for downspamling_factor in range(2, 51):
+        processed_signals = get_processed_signals(sig, downspamling_factor)
+
+        processed_signal = processed_signals[idx]
+
+        decimated_time = time if idx % 2 else processed_signals[-1]
+
+        im, = ax.plot(decimated_time, processed_signal)
+        title = ax.text(0.5, 1.05, f"{titles[idx]}, коэф. выброса значений {downspamling_factor}",
+                        size=plt.rcParams["axes.titlesize"],
+                        ha="center", transform=ax.transAxes, )
+        ims.append([im, title])
+
+    ani = animation.ArtistAnimation(fig, ims)
+
+    animation_name = f'{idx} анимация - Сигнал, {titles[idx]}'
+    ani.save(f'./animation/{animation_name}.gif', writer='imagemagick', fps=2.5, dpi=100)
+    print(f'{animation_name} создана')
+    plt.show()
+
+
+def create_spectrum_animation(sig, idx=0):
+    fig, ax = plt.subplots()
+
+    ims = []
+    for downspamling_factor in range(2, 51):
+        processed_signals = get_processed_signals(sig, downspamling_factor)
+
+        processed_signal = processed_signals[idx]
+
+        spectrum, freqs, im = ax.magnitude_spectrum(processed_signal, Fs)
+
+        title = ax.text(0.5, 1.05, f"Спектр, {titles[idx]}, коэф. выброса значений {downspamling_factor}",
+                        size=plt.rcParams["axes.titlesize"],
+                        ha="center", transform=ax.transAxes, )
+        ims.append([im, title])
+
+    ani = animation.ArtistAnimation(fig, ims)
+
+    animation_name = f'{idx} анимация - Cпектр, {titles[idx]}'
+    ani.save(f'./animation/{animation_name}.gif', writer='imagemagick', fps=2.5, dpi=100)
+    print(f'{animation_name} создана')
+    plt.show()
+
+
+def create_interpolation_animation(sig, idx=0):
+    fig, ax = plt.subplots()
+
+    ims = []
+    for downspamling_factor in range(2, 37):
+        processed_signals = get_processed_signals(sig, downspamling_factor)
+
+        processed_signal = processed_signals[idx]
+
+        decimated_time = time if idx % 2 else processed_signals[-1]
+
+        tck = interpolate.splrep(decimated_time, processed_signal)
+        interpolated = interpolate.splev(time, tck)
+
+        im, = ax.plot(time, interpolated)
+
+        title = ax.text(0.5, 1.05, f"Инерполяция, {titles[idx]}, коэф. выброса значений {downspamling_factor}",
+                        size=plt.rcParams["axes.titlesize"],
+                        ha="center", transform=ax.transAxes, )
+        ims.append([im, title])
+
+    ani = animation.ArtistAnimation(fig, ims)
+
+    animation_name = f'{idx} анимация - Интерполяция, {titles[idx]}'
+    ani.save(f'./animation/{animation_name}.gif', writer='imagemagick', fps=2.5, dpi=100)
+    print(f'{animation_name} создана')
+    plt.show()
 
 
 def process_and_display_signals(sig, downsampling_factor, five_periods, tone):
@@ -180,10 +261,16 @@ def callback(tone):
     [process_and_display_signals(sig, downsampling_factor, five_periods, tone) for downsampling_factor in
      list([2, 20, 50])]
 
+    [create_animation(sig, idx) for idx in range(0, 4)]
+    [create_spectrum_animation(sig, idx) for idx in range(0, 4)]
+    [create_interpolation_animation(sig, idx) for idx in range(0, 4)]
+
 
 def main():
+    print('Введите тона:')
     tones = list(input())
     list(map(callback, tones))
+
     main()
 
 
