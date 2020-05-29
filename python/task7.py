@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import librosa
 from scipy import signal, interpolate
+from scipy.fftpack import fft, ifft, rfftfreq
 
 warnings.filterwarnings("ignore")
 font = {
@@ -153,7 +154,7 @@ def process_signals(sig, downsampling_factor, N, ftype):
 
 
 def get_processed_signals(sig, downsampling_factor=5):
-    n = 1
+    n = 29
     N_fir = 50 - n
     N_iir = 30 - n
 
@@ -198,9 +199,16 @@ def create_spectrum_animation(sig, idx=0):
 
         processed_signal = processed_signals[idx]
 
-        spectrum, freqs, im = ax.magnitude_spectrum(processed_signal, Fs)
+        decimated_time = time if idx % 2 else processed_signals[-1]
 
-        title = ax.text(0.5, 1.05, f"Спектр, {titles[idx]}, коэф. выброса значений {downspamling_factor}",
+        fr = rfftfreq(len(decimated_time), 1. * downspamling_factor / Fs)
+        spectrum = abs(fft(processed_signal))
+
+        ax.set_xlim([0, max(2 * fr)])
+        im, = ax.plot(2 * fr, spectrum)
+
+        title = ax.text(0.5, 1.05,
+                        f"Спектр, {titles[idx]}, коэф. выброса значений {downspamling_factor}, xlim={max(2 * fr)}",
                         size=plt.rcParams["axes.titlesize"],
                         ha="center", transform=ax.transAxes, )
         ims.append([im, title])
@@ -227,6 +235,7 @@ def create_interpolation_animation(sig, idx=0):
         tck = interpolate.splrep(decimated_time, processed_signal)
         interpolated = interpolate.splev(time, tck)
 
+        ax.set_ylim([-3, 3])
         im, = ax.plot(time, interpolated)
 
         title = ax.text(0.5, 1.05, f"Инерполяция, {titles[idx]}, коэф. выброса значений {downspamling_factor}",
