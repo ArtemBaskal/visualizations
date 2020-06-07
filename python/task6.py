@@ -26,9 +26,9 @@ font = {
 plt.rc('font', **font)
 plt.rcParams['figure.dpi'] = 300
 
-duration = 20
+duration = 60
 
-data_dir = '/Volumes/dev/hse/media/audio/around.mp3'
+data_dir = '/Volumes/dev/hse/media/audio/lump.mp3'
 audio, sfreq = librosa.load(data_dir, duration=duration)
 time = np.arange(0, len(audio)) / sfreq
 
@@ -91,8 +91,9 @@ def butter(btype='lowpass', sig=audio, lowcut=1, highcut=3000, order=10, fs=Fs):
     filtered = signal.sosfilt(sos, sig)
     draw_signal_and_spectrum(time, filtered, sos, title)
 
-    if btype == Btypes['bandstop']:
-        librosa.output.write_wav(f'/Volumes/dev/hse/media/audio/test.wav', filtered, sfreq)
+    return filtered
+    # if btype == Btypes['bandstop']:
+    #     librosa.output.write_wav(f'/Volumes/dev/hse/media/audio/test.wav', filtered, sfreq)
 
 
 def cheby1(btype='lowpass', sig=audio, lowcut=1, highcut=3000, order=4, fs=Fs):
@@ -103,6 +104,8 @@ def cheby1(btype='lowpass', sig=audio, lowcut=1, highcut=3000, order=4, fs=Fs):
     filtered = signal.sosfilt(sos, sig)
     draw_signal_and_spectrum(time, filtered, sos, title)
 
+    return filtered
+
 
 def cheby2(btype='lowpass', sig=audio, lowcut=1, highcut=3000, order=4, fs=Fs):
     title = f'{btype} chebyshev type II'
@@ -111,6 +114,8 @@ def cheby2(btype='lowpass', sig=audio, lowcut=1, highcut=3000, order=4, fs=Fs):
     sos = signal.cheby2(order, 40, freqs, btype, analog=False, output='sos', fs=fs)
     filtered = signal.sosfilt(sos, sig)
     draw_signal_and_spectrum(time, filtered, sos, title)
+
+    return filtered
 
 
 def ellip(btype='lowpass', sig=audio, lowcut=1, highcut=3000, order=4, fs=Fs):
@@ -121,9 +126,65 @@ def ellip(btype='lowpass', sig=audio, lowcut=1, highcut=3000, order=4, fs=Fs):
     filtered = signal.sosfilt(sos, sig)
     draw_signal_and_spectrum(time, filtered, sos, title)
 
+    return filtered
 
-filters = [butter, cheby1, cheby2, ellip]
+
+filters = [butter]
 
 draw_signal_and_spectrum(time, audio)
 
-list(map(lambda f: list(map(f, list(Btypes))), filters))
+# list(map(lambda f: list(map(f, list(Btypes))), filters))
+
+filtered = cheby1('bandstop', audio, 100, 1000)
+# b = copy.deepcopy(filtered)
+filtered2 = cheby1('bandstop', filtered, 4000, 5000)
+
+# Input parameters
+# fs = 10
+# N = 117
+# desired = (8, 90, 110, 90, 8, 7)
+# bands = (0, 1, 2, 4.9, 4.95, 5)
+#
+# # FIR filters
+# fir_firls = signal.firls(N, bands, desired, fs=fs)
+# fir_remez = signal.remez(N, bands, desired[::2], fs=fs)
+# fir_firwin2 = signal.firwin2(N, bands, desired, fs=fs)
+#
+# # PLot results and calculate FFTs
+# plt.figure(figsize=(12, 5), dpi=300)
+# plt.title('Frequency responce')
+# for fir in (fir_firls, fir_remez, fir_firwin2):
+#     freq, resp = signal.freqz(fir)
+#     resp = np.abs(resp)
+#     resp /= np.max(resp) + 10 ** (-15)
+#     plt.plot(freq, 20 * np.log10(resp))
+# # plt.xlim([0, np.pi])
+# # plt.ylim([-180, 5])
+# plt.legend(['firls', 'remez', 'firwin2'], loc='upper left')
+# plt.grid(True)
+# plt.show()
+
+
+# def plot_response(fs, w, h, title):
+#     "Utility function to plot response functions"
+#     fig = plt.figure()
+#     ax = fig.add_subplot(111)
+#     ax.plot(0.5 * fs * w / np.pi, 20 * np.log10(np.abs(h)))
+#     # ax.set_ylim(-40, 5)
+#     # ax.set_xlim(0, 0.5 * fs)
+#     ax.grid(True)
+#     ax.set_xlabel('Frequency (Hz)')
+#     ax.set_ylabel('Gain (dB)')
+#     ax.set_title(title)
+#     plt.show()
+#
+#
+# fs = Fs  # Sample rate, Hz
+# band = [2000, 5000]  # Desired pass band, Hz
+# trans_width = 100  # Width of transition from pass band to stop band, Hz
+# numtaps = 15  # Size of the FIR filter.
+# edges = [0, band[0] - trans_width, band[0], band[1],
+#          band[1] + trans_width, 0.5 * fs]
+# taps = signal.remez(numtaps, edges, [0, 1, 0], Hz=fs)
+# w, h = signal.freqz(taps, [1], worN=2000)
+# plot_response(fs, w, h, "Band-pass Filter")
